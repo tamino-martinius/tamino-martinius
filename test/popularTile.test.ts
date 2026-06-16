@@ -35,4 +35,30 @@ describe("popular tiles", () => {
       }),
     ).not.toThrow();
   });
+
+  it("renders a vector value icon instead of a font glyph", () => {
+    const star = renderPopularTile({
+      name: "r",
+      description: "d",
+      value: 10,
+      valueLabel: "10",
+      leaderValue: 10,
+      accent: "#673bd6",
+      theme: themes.light,
+      valueIcon: "star",
+    });
+    expect(star).toContain('transform="translate(');
+    expect(star).not.toContain("★");
+    const dl = renderPopularTile({
+      name: "p",
+      description: "d",
+      value: 10,
+      valueLabel: "10",
+      leaderValue: 10,
+      accent: "#00a5fe",
+      theme: themes.light,
+      valueIcon: "download",
+    });
+    expect(dl).not.toContain("↓");
+  });
 });

@@ -112,10 +112,11 @@ async function main(): Promise<void> {
           name: repo.name,
           description: repo.description,
           value: repo.stargazerCount,
-          valueLabel: `★ ${repo.stargazerCount.toLocaleString("en-US")}`,
+          valueLabel: repo.stargazerCount.toLocaleString("en-US"),
           leaderValue: leader,
           accent,
           theme: t,
+          valueIcon: "star",
         }),
       );
       tiles.push(linkedPicture(repo.url, pair.light, pair.dark, repo.name, 420));
@@ -138,10 +139,11 @@ async function main(): Promise<void> {
           name: pkg.name,
           description: pkg.description,
           value: pkg.downloads,
-          valueLabel: `↓ ${pkg.downloads.toLocaleString("en-US")}`,
+          valueLabel: pkg.downloads.toLocaleString("en-US"),
           leaderValue: leader,
           accent: themes.light.blue,
           theme: t,
+          valueIcon: "download",
         }),
       );
       tiles.push(linkedPicture(pkg.url, pair.light, pair.dark, pkg.name, 420));
