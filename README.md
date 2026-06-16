@@ -1,16 +1,17 @@
 ## Hi there 👋
 
-<!--
-**tamino-martinius/tamino-martinius** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+I speak code as a Staff Engineer. The stats below are generated nightly from my GitHub and npm activity.
 
-Here are some ideas to get you started:
+<!-- METRICS:START -->
+<a href="https://github.com/tamino-martinius"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/github-user.dark.svg"><img src="assets/github-user.light.svg" alt="Tamino Martinius" width="420"></picture></a>
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/github-total.dark.svg"><img src="assets/github-total.light.svg" alt="GitHub totals" width="420"></picture> <picture><source media="(prefers-color-scheme: dark)" srcset="assets/npm-total.dark.svg"><img src="assets/npm-total.light.svg" alt="npm totals" width="420"></picture>
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/github-daytime.dark.svg"><img src="assets/github-daytime.light.svg" alt="GitHub daytime" width="860"></picture>
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/npm-daytime.dark.svg"><img src="assets/npm-daytime.light.svg" alt="npm daytime" width="860"></picture>
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/repos/_header.dark.svg"><img src="assets/repos/_header.light.svg" alt="Popular Repositories" width="420"></picture><br><a href="https://github.com/tamino-martinius/ui-snippets"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/repos/ui-snippets.dark.svg"><img src="assets/repos/ui-snippets.light.svg" alt="ui-snippets" width="420"></picture></a><br><a href="https://github.com/tamino-martinius/node-ts-dedent"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/repos/node-ts-dedent.dark.svg"><img src="assets/repos/node-ts-dedent.light.svg" alt="node-ts-dedent" width="420"></picture></a><br><a href="https://github.com/tamino-martinius/metrics.tamino.dev"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/repos/metrics.tamino.dev.dark.svg"><img src="assets/repos/metrics.tamino.dev.light.svg" alt="metrics.tamino.dev" width="420"></picture></a><br><a href="https://github.com/tamino-martinius/meteor-smart-record"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/repos/meteor-smart-record.dark.svg"><img src="assets/repos/meteor-smart-record.light.svg" alt="meteor-smart-record" width="420"></picture></a><br><a href="https://github.com/tamino-martinius/tamino.dev"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/repos/tamino.dev.dark.svg"><img src="assets/repos/tamino.dev.light.svg" alt="tamino.dev" width="420"></picture></a><br><a href="https://github.com/tamino-martinius/lambda-get-all-github-contributions"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/repos/lambda-get-all-github-contributions.dark.svg"><img src="assets/repos/lambda-get-all-github-contributions.light.svg" alt="lambda-get-all-github-contributions" width="420"></picture></a>
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/packages/_header.dark.svg"><img src="assets/packages/_header.light.svg" alt="Popular Packages" width="420"></picture><br><a href="https://www.npmjs.com/package/ts-dedent"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/packages/ts-dedent.dark.svg"><img src="assets/packages/ts-dedent.light.svg" alt="ts-dedent" width="420"></picture></a><br><a href="https://www.npmjs.com/package/@central-icons-react/round-outlined-radius-3-stroke-2"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/packages/central-icons-react-round-outlined-radius-3-stroke-2.dark.svg"><img src="assets/packages/central-icons-react-round-outlined-radius-3-stroke-2.light.svg" alt="@central-icons-react/round-outlined-radius-3-stroke-2" width="420"></picture></a><br><a href="https://www.npmjs.com/package/@central-icons-react/square-outlined-radius-0-stroke-1.5"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/packages/central-icons-react-square-outlined-radius-0-stroke-1.5.dark.svg"><img src="assets/packages/central-icons-react-square-outlined-radius-0-stroke-1.5.light.svg" alt="@central-icons-react/square-outlined-radius-0-stroke-1.5" width="420"></picture></a><br><a href="https://www.npmjs.com/package/@central-icons-react/square-outlined-radius-0-stroke-2"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/packages/central-icons-react-square-outlined-radius-0-stroke-2.dark.svg"><img src="assets/packages/central-icons-react-square-outlined-radius-0-stroke-2.light.svg" alt="@central-icons-react/square-outlined-radius-0-stroke-2" width="420"></picture></a><br><a href="https://www.npmjs.com/package/@central-icons-react/round-outlined-radius-1-stroke-1.5"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/packages/central-icons-react-round-outlined-radius-1-stroke-1.5.dark.svg"><img src="assets/packages/central-icons-react-round-outlined-radius-1-stroke-1.5.light.svg" alt="@central-icons-react/round-outlined-radius-1-stroke-1.5" width="420"></picture></a><br><a href="https://www.npmjs.com/package/@central-icons-react/round-filled-radius-3-stroke-2"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/packages/central-icons-react-round-filled-radius-3-stroke-2.dark.svg"><img src="assets/packages/central-icons-react-round-filled-radius-3-stroke-2.light.svg" alt="@central-icons-react/round-filled-radius-3-stroke-2" width="420"></picture></a>
+<!-- METRICS:END -->
