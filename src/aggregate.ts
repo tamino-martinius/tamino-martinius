@@ -21,6 +21,9 @@ export interface GithubAggregate {
   topLanguages: LanguageStat[]; // sorted desc, full list (caller slices)
 }
 
+const DEFAULT_LANGUAGE_COLOR = "#888";
+
+/** Hour keys are formatted "Wkd, HH" (e.g. "Mon, 13"); the weekday is the first 3 chars. */
 function weekdayOf(hourKey: string): string {
   return hourKey.slice(0, 3);
 }
@@ -40,6 +43,8 @@ export function aggregateGithub(stats: GithubStats): GithubAggregate {
       totals.changedFiles += stat.changedFiles;
       if (isPublic) {
         totals.publicCommitCount += stat.commitCount;
+        // Credit each language the repo lists with this date's commits (matches metrics.tamino.dev):
+        // a language's total = sum of commitCount across all dates of every public repo that uses it.
         for (const lang of repo.public?.languages ?? []) {
           perLanguage[lang] = (perLanguage[lang] ?? 0) + stat.commitCount;
         }
@@ -53,7 +58,11 @@ export function aggregateGithub(stats: GithubStats): GithubAggregate {
   }
 
   const topLanguages: LanguageStat[] = Object.entries(perLanguage)
-    .map(([language, commitCount]) => ({ language, commitCount, color: stats.languageColors[language] ?? "#888" }))
+    .map(([language, commitCount]) => ({
+      language,
+      commitCount,
+      color: stats.languageColors[language] ?? DEFAULT_LANGUAGE_COLOR,
+    }))
     .sort((a, b) => b.commitCount - a.commitCount);
 
   return { totals, commitsPerHour, commitsPerWeekday, topLanguages };

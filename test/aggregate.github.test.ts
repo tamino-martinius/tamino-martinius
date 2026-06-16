@@ -45,4 +45,38 @@ describe("aggregateGithub", () => {
     const g = aggregateGithub(stats);
     expect(g.topLanguages[0]).toEqual({ language: "Ruby", commitCount: 2, color: "#701516" });
   });
+
+  it("accumulates language commits across multiple dates of a public repo", () => {
+    const multi: GithubStats = {
+      user: { name: "T", username: "t", bio: "", avatarUrl: "", url: "", followerCount: 0, followingCount: 0 },
+      languageColors: { Go: "#00ADD8" },
+      repositories: [
+        {
+          public: { name: "g", url: "u", languages: ["Go"], description: "", stargazerCount: 1, forkCount: 0 },
+          commitsPerDate: {
+            "2024-01-01": { commitCount: 2, additions: 0, deletions: 0, changedFiles: 0 },
+            "2024-01-02": { commitCount: 3, additions: 0, deletions: 0, changedFiles: 0 },
+          },
+          commitsPerHour: {},
+        },
+      ],
+    };
+    const g = aggregateGithub(multi);
+    expect(g.topLanguages[0]).toEqual({ language: "Go", commitCount: 5, color: "#00ADD8" });
+  });
+
+  it("falls back to a default color for unknown languages", () => {
+    const unknown: GithubStats = {
+      user: { name: "T", username: "t", bio: "", avatarUrl: "", url: "", followerCount: 0, followingCount: 0 },
+      languageColors: {},
+      repositories: [
+        {
+          public: { name: "x", url: "u", languages: ["Brainfuck"], description: "", stargazerCount: 0, forkCount: 0 },
+          commitsPerDate: { "2024-01-01": { commitCount: 1, additions: 0, deletions: 0, changedFiles: 0 } },
+          commitsPerHour: {},
+        },
+      ],
+    };
+    expect(aggregateGithub(unknown).topLanguages[0]?.color).toBe("#888");
+  });
 });
