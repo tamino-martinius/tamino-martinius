@@ -1,4 +1,4 @@
-import type { GithubStats, RepoPublicDetails } from "./types";
+import type { GithubStats, NpmStats, RepoPublicDetails } from "./types";
 
 export interface GithubTotals {
   commitCount: number;
@@ -79,4 +79,63 @@ export function topRepositories(stats: GithubStats, opts: { count: number; exclu
     .sort((a, b) => b.stargazerCount - a.stargazerCount)
     .slice(0, opts.count)
     .map((p) => ({ ...p, primaryLanguage: p.languages[0] ?? null }));
+}
+
+export interface NpmTotals {
+  downloads: number;
+  versions: number;
+  packageCount: number;
+}
+
+export interface NpmAggregate {
+  totals: NpmTotals;
+  publishesPerHour: Record<string, number>;
+  publishesPerWeekday: Record<string, number>;
+}
+
+export interface TopPackage {
+  name: string;
+  description: string;
+  latestVersion: string;
+  url: string;
+  downloads: number;
+}
+
+function sumValues(record: Record<string, number>): number {
+  let total = 0;
+  for (const v of Object.values(record)) total += v;
+  return total;
+}
+
+export function aggregateNpm(stats: NpmStats): NpmAggregate {
+  const publishesPerHour: Record<string, number> = {};
+  const publishesPerWeekday: Record<string, number> = {};
+  let versions = 0;
+  for (const [hourKey, count] of Object.entries(stats.user.versionsPerHour)) {
+    publishesPerHour[hourKey] = (publishesPerHour[hourKey] ?? 0) + count;
+    const wd = hourKey.slice(0, 3);
+    publishesPerWeekday[wd] = (publishesPerWeekday[wd] ?? 0) + count;
+    versions += count;
+  }
+  let downloads = 0;
+  for (const p of stats.packages) downloads += sumValues(p.downloadsPerDate);
+  return {
+    totals: { downloads, versions, packageCount: stats.packages.length },
+    publishesPerHour,
+    publishesPerWeekday,
+  };
+}
+
+export function topPackages(stats: NpmStats, opts: { count: number; exclude: string[] }): TopPackage[] {
+  return stats.packages
+    .filter((p) => !opts.exclude.includes(p.details.name))
+    .map((p) => ({
+      name: p.details.name,
+      description: p.details.description ?? "",
+      latestVersion: p.details.latestVersion,
+      url: p.details.links?.npm ?? `https://www.npmjs.com/package/${p.details.name}`,
+      downloads: sumValues(p.downloadsPerDate),
+    }))
+    .sort((a, b) => b.downloads - a.downloads)
+    .slice(0, opts.count);
 }
