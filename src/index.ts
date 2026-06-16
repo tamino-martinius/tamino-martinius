@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { config } from "../config";
 import { aggregateGithub, aggregateNpm, topPackages, topRepositories } from "./aggregate";
@@ -19,16 +19,18 @@ function slugify(name: string): string {
     .replace(/^-+/, "");
 }
 
-const usedSlugs = new Set<string>();
+const usedSlugs = new Set<string>(["repos/_header", "packages/_header"]);
 
-/** Slugify within a namespace (e.g. "repos"/"packages") and fail loudly on collision. */
+/** Slugify within a namespace; on collision append -2, -3, … so a nightly run never hard-fails. */
 function uniqueSlug(namespace: string, name: string): string {
-  const slug = slugify(name);
-  const key = `${namespace}/${slug}`;
-  if (usedSlugs.has(key)) {
-    throw new Error(`Slug collision for "${name}" -> "${key}". Add an exclude or adjust slugify.`);
+  const base = slugify(name);
+  let slug = base;
+  let n = 2;
+  while (usedSlugs.has(`${namespace}/${slug}`)) {
+    slug = `${base}-${n}`;
+    n += 1;
   }
-  usedSlugs.add(key);
+  usedSlugs.add(`${namespace}/${slug}`);
   return slug;
 }
 
@@ -55,6 +57,7 @@ function writePair(name: string, render: (theme: Theme) => string): { light: str
 }
 
 async function main(): Promise<void> {
+  rmSync(assetsDir, { recursive: true, force: true });
   mkdirSync(assetsDir, { recursive: true });
 
   const [ghStats, npmStats] = await Promise.all([
