@@ -19,6 +19,19 @@ function slugify(name: string): string {
     .replace(/^-+/, "");
 }
 
+const usedSlugs = new Set<string>();
+
+/** Slugify within a namespace (e.g. "repos"/"packages") and fail loudly on collision. */
+function uniqueSlug(namespace: string, name: string): string {
+  const slug = slugify(name);
+  const key = `${namespace}/${slug}`;
+  if (usedSlugs.has(key)) {
+    throw new Error(`Slug collision for "${name}" -> "${key}". Add an exclude or adjust slugify.`);
+  }
+  usedSlugs.add(key);
+  return slug;
+}
+
 async function fetchAvatarDataUri(url: string): Promise<string> {
   try {
     const res = await fetch(url);
@@ -44,8 +57,10 @@ function writePair(name: string, render: (theme: Theme) => string): { light: str
 async function main(): Promise<void> {
   mkdirSync(assetsDir, { recursive: true });
 
-  const ghStats = await fetchGithubStats(config.github.accounts);
-  const npmStats = await fetchNpmStats(config.npm.account);
+  const [ghStats, npmStats] = await Promise.all([
+    fetchGithubStats(config.github.accounts),
+    fetchNpmStats(config.npm.account),
+  ]);
   const gh = aggregateGithub(ghStats);
   const npm = aggregateNpm(npmStats);
   const avatar = await fetchAvatarDataUri(ghStats.user.avatarUrl);
@@ -89,7 +104,7 @@ async function main(): Promise<void> {
     const header = writePair("repos/_header", (t) => renderPopularHeader("Popular Repositories", t));
     const tiles = [picture(header.light, header.dark, "Popular Repositories", 420)];
     for (const repo of repos) {
-      const slug = slugify(repo.name);
+      const slug = uniqueSlug("repos", repo.name);
       const accent =
         ghStats.languageColors[repo.primaryLanguage ?? ""] ?? themes.light.series[0] ?? themes.light.foregroundLight;
       const pair = writePair(`repos/${slug}`, (t) =>
@@ -117,7 +132,7 @@ async function main(): Promise<void> {
     const header = writePair("packages/_header", (t) => renderPopularHeader("Popular Packages", t));
     const tiles = [picture(header.light, header.dark, "Popular Packages", 420)];
     for (const pkg of pkgs) {
-      const slug = slugify(pkg.name);
+      const slug = uniqueSlug("packages", pkg.name);
       const pair = writePair(`packages/${slug}`, (t) =>
         renderPopularTile({
           name: pkg.name,
