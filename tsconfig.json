@@ -11,5 +11,5 @@
     "types": ["node"],
     "outDir": "dist"
   },
-  "include": ["src", "test", "config.ts"]
+  "include": ["src", "config.ts"]
 }
