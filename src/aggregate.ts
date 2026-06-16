@@ -1,4 +1,4 @@
-import type { GithubStats } from "./types";
+import type { GithubStats, RepoPublicDetails } from "./types";
 
 export interface GithubTotals {
   commitCount: number;
@@ -66,4 +66,17 @@ export function aggregateGithub(stats: GithubStats): GithubAggregate {
     .sort((a, b) => b.commitCount - a.commitCount);
 
   return { totals, commitsPerHour, commitsPerWeekday, topLanguages };
+}
+
+export interface TopRepo extends RepoPublicDetails {
+  primaryLanguage: string | null;
+}
+
+export function topRepositories(stats: GithubStats, opts: { count: number; exclude: string[] }): TopRepo[] {
+  return stats.repositories
+    .map((r) => r.public)
+    .filter((p): p is RepoPublicDetails => p !== undefined && !opts.exclude.includes(p.name))
+    .sort((a, b) => b.stargazerCount - a.stargazerCount)
+    .slice(0, opts.count)
+    .map((p) => ({ ...p, primaryLanguage: p.languages[0] ?? null }));
 }
