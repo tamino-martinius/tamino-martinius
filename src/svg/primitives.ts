@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import opentype from "opentype.js";
+import type { Theme } from "../theme";
 
 export type Weight = "regular" | "bold";
 
@@ -65,4 +66,81 @@ export function textPath(opts: TextOptions): string {
 
 export function svgDocument(width: number, height: number, body: string): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img">${body}</svg>`;
+}
+
+export function cardBackground(width: number, height: number, theme: Theme): string {
+  return `<rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="10" fill="${theme.background}" stroke="${theme.cardBorder}" />`;
+}
+
+export function hr(x: number, y: number, theme: Theme): string {
+  return `<line x1="${x}" y1="${y}" x2="${x + 30}" y2="${y}" stroke="${theme.foregroundLight}" stroke-opacity="0.4" />`;
+}
+
+export interface BarSection {
+  value: number;
+  color: string;
+}
+
+export function bar(opts: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  sections: BarSection[];
+  theme: Theme;
+}): string {
+  const { x, y, width, height, sections, theme } = opts;
+  const total = sections.reduce((sum, s) => sum + s.value, 0) || 1;
+  let offset = x;
+  const rects: string[] = [
+    `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="${height / 2}" fill="${theme.empty}" />`,
+  ];
+  for (const s of sections) {
+    const w = (s.value / total) * width;
+    rects.push(
+      `<rect x="${offset.toFixed(2)}" y="${y}" width="${w.toFixed(2)}" height="${height}" rx="${height / 2}" fill="${s.color}" />`,
+    );
+    offset += w;
+  }
+  return rects.join("");
+}
+
+export interface LegendItem {
+  label: string;
+  value: string;
+  color: string;
+}
+
+export function legendRows(opts: {
+  x: number;
+  y: number;
+  items: LegendItem[];
+  theme: Theme;
+  rowHeight?: number;
+}): string {
+  const { x, y, items, theme, rowHeight = 22 } = opts;
+  return items
+    .map((item, i) => {
+      const cy = y + i * rowHeight;
+      const dot = `<circle cx="${x + 4}" cy="${cy - 4}" r="4" fill="${item.color}" />`;
+      const label = textPath({
+        text: item.label,
+        x: x + 16,
+        y: cy,
+        size: 13,
+        weight: "regular",
+        color: theme.foreground,
+      });
+      const value = textPath({
+        text: item.value,
+        x: x + 200,
+        y: cy,
+        size: 13,
+        weight: "bold",
+        color: theme.foregroundLight,
+        anchor: "end",
+      });
+      return `<g aria-label="${escapeXml(`${item.label}: ${item.value}`)}">${dot}${label}${value}</g>`;
+    })
+    .join("");
 }
