@@ -1,5 +1,5 @@
 <!-- METRICS:START -->
-<div align="right"><sub>Updated 2026-06-17 09:15 UTC</sub></div>
+<p align="right"><sub>Updated 2026-06-17 09:18 UTC</sub></p>
 
 <a href="https://github.com/tamino-martinius"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/github-user.dark.svg"><img src="assets/github-user.light.svg" alt="Tamino Martinius" width="420"></picture></a>
 

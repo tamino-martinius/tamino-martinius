@@ -73,7 +73,7 @@ async function main(): Promise<void> {
 
   // Right-aligned "Updated" timestamp as the first line.
   const updatedAt = `${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC`;
-  sections.push(`<div align="right"><sub>Updated ${updatedAt}</sub></div>`);
+  sections.push(`<p align="right"><sub>Updated ${updatedAt}</sub></p>`);
 
   if (config.cards.user.enabled) {
     const p = writePair("github-user", (t) =>
