@@ -12,6 +12,11 @@ import { type Theme, themes } from "./theme";
 
 const assetsDir = config.output.assetsDir;
 
+// Rendered image widths. 416 (not 420) so two cards fit side by side in GitHub's
+// narrower repo README file view; WIDE_W keeps the daytime chart at the two-column width.
+const CARD_W = 416;
+const WIDE_W = CARD_W * 2;
+
 function slugify(name: string): string {
   return name
     .replace(/[@/]/g, "-")
@@ -79,17 +84,17 @@ async function main(): Promise<void> {
     const p = writePair("github-user", (t) =>
       renderUserCard(userWithAvatar, gh, t, { topLanguages: config.cards.user.topLanguages }),
     );
-    sections.push(linkedPicture(ghStats.user.url, p.light, p.dark, ghStats.user.name, 420));
+    sections.push(linkedPicture(ghStats.user.url, p.light, p.dark, ghStats.user.name, CARD_W));
   }
 
   const row: string[] = [];
   if (config.cards.githubTotals.enabled) {
     const p = writePair("github-total", (t) => renderGithubTotalCounts(gh.totals, t));
-    row.push(picture(p.light, p.dark, "GitHub totals", 420));
+    row.push(picture(p.light, p.dark, "GitHub totals", CARD_W));
   }
   if (config.cards.npmTotals.enabled) {
     const p = writePair("npm-total", (t) => renderNpmTotalCounts(npm.totals, t));
-    row.push(picture(p.light, p.dark, "npm totals", 420));
+    row.push(picture(p.light, p.dark, "npm totals", CARD_W));
   }
   if (row.length) sections.push(row.join(" "));
 
@@ -97,7 +102,7 @@ async function main(): Promise<void> {
     // Combine commit + publish activity with equal weight into one chart.
     const daytime = combineEqualWeight(gh.commitsPerHour, npm.publishesPerHour);
     const p = writePair("daytime", (t) => renderDaytimeChart("Daytime Chart", daytime, t));
-    sections.push(picture(p.light, p.dark, "Daytime chart (commits + npm publishes)", 840));
+    sections.push(picture(p.light, p.dark, "Daytime chart (commits + npm publishes)", WIDE_W));
   }
 
   // Popular Repositories and Popular Packages, shown as two side-by-side columns of
@@ -112,7 +117,7 @@ async function main(): Promise<void> {
     });
     const leader = repos[0]?.stargazerCount ?? 0;
     const header = writePair("repos/_header", (t) => renderPopularHeader("Popular Repositories", t));
-    reposColumn = [picture(header.light, header.dark, "Popular Repositories", 420)];
+    reposColumn = [picture(header.light, header.dark, "Popular Repositories", CARD_W)];
     for (const repo of repos) {
       const slug = uniqueSlug("repos", repo.name);
       const accent =
@@ -129,7 +134,7 @@ async function main(): Promise<void> {
           valueIcon: "star",
         }),
       );
-      reposColumn.push(linkedPicture(repo.url, pair.light, pair.dark, repo.name, 420));
+      reposColumn.push(linkedPicture(repo.url, pair.light, pair.dark, repo.name, CARD_W));
     }
   }
 
@@ -140,7 +145,7 @@ async function main(): Promise<void> {
     });
     const leader = pkgs[0]?.downloads ?? 0;
     const header = writePair("packages/_header", (t) => renderPopularHeader("Popular Packages", t));
-    packagesColumn = [picture(header.light, header.dark, "Popular Packages", 420)];
+    packagesColumn = [picture(header.light, header.dark, "Popular Packages", CARD_W)];
     for (const pkg of pkgs) {
       const slug = uniqueSlug("packages", pkg.name);
       const pair = writePair(`packages/${slug}`, (t) =>
@@ -155,7 +160,7 @@ async function main(): Promise<void> {
           valueIcon: "download",
         }),
       );
-      packagesColumn.push(linkedPicture(pkg.url, pair.light, pair.dark, pkg.name, 420));
+      packagesColumn.push(linkedPicture(pkg.url, pair.light, pair.dark, pkg.name, CARD_W));
     }
   }
 
