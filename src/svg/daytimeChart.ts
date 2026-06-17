@@ -2,7 +2,7 @@ import { area, curveBasis } from "d3-shape";
 import type { Theme } from "../theme";
 import { cardBackground, measureText, svgDocument, textPath } from "./primitives";
 
-const W = 860;
+const W = 840;
 const H = 240;
 const PAD_LEFT = 24;
 const PAD_RIGHT = 24;

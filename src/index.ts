@@ -71,6 +71,10 @@ async function main(): Promise<void> {
 
   const sections: string[] = [];
 
+  // Right-aligned "Updated" timestamp as the first line.
+  const updatedAt = `${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC`;
+  sections.push(`<div align="right"><sub>Updated ${updatedAt}</sub></div>`);
+
   if (config.cards.user.enabled) {
     const p = writePair("github-user", (t) =>
       renderUserCard(userWithAvatar, gh, t, { topLanguages: config.cards.user.topLanguages }),
@@ -93,7 +97,7 @@ async function main(): Promise<void> {
     // Combine commit + publish activity with equal weight into one chart.
     const daytime = combineEqualWeight(gh.commitsPerHour, npm.publishesPerHour);
     const p = writePair("daytime", (t) => renderDaytimeChart("Daytime Chart", daytime, t));
-    sections.push(picture(p.light, p.dark, "Daytime chart (commits + npm publishes)", 860));
+    sections.push(picture(p.light, p.dark, "Daytime chart (commits + npm publishes)", 840));
   }
 
   // Popular Repositories and Popular Packages, shown as two side-by-side columns of
