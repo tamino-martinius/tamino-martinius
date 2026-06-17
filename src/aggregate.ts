@@ -139,3 +139,21 @@ export function topPackages(stats: NpmStats, opts: { count: number; exclude: str
     .sort((a, b) => b.downloads - a.downloads)
     .slice(0, opts.count);
 }
+
+/**
+ * Combine multiple per-key numeric series giving each source EQUAL weight: each is
+ * normalized to its own max (→ 0..1) before summing, so a high-volume source (e.g.
+ * commits) doesn't drown out a low-volume one (e.g. npm publishes).
+ */
+export function combineEqualWeight(...sources: Record<string, number>[]): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const source of sources) {
+    let max = 0;
+    for (const value of Object.values(source)) if (value > max) max = value;
+    if (max === 0) continue;
+    for (const [key, value] of Object.entries(source)) {
+      result[key] = (result[key] ?? 0) + value / max;
+    }
+  }
+  return result;
+}

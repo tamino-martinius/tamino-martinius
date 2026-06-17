@@ -1,6 +1,6 @@
-import { area, curveCatmullRom } from "d3-shape";
+import { area, curveBasis } from "d3-shape";
 import type { Theme } from "../theme";
-import { cardBackground, svgDocument, textPath } from "./primitives";
+import { cardBackground, measureText, svgDocument, textPath } from "./primitives";
 
 const W = 860;
 const H = 240;
@@ -9,6 +9,25 @@ const PAD_RIGHT = 24;
 const PAD_TOP = 50;
 const PAD_BOTTOM = 30;
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** Horizontal weekday legend (color dot + short name) right-aligned in the title band. */
+function weekdayLegend(theme: Theme): string {
+  const size = 11;
+  const dotSpan = 9; // dot + gap before its label
+  const itemGap = 14;
+  const widths = WEEKDAYS.map((wd) => measureText(wd, size, "regular"));
+  const totalW = widths.reduce((sum, w) => sum + dotSpan + w + itemGap, 0) - itemGap;
+  const y = 30;
+  let x = W - 18 - totalW;
+  const parts: string[] = [];
+  WEEKDAYS.forEach((wd, i) => {
+    const color = theme.series[i] ?? theme.foregroundLight;
+    parts.push(`<circle cx="${(x + 3).toFixed(1)}" cy="${y - 4}" r="3" fill="${color}" />`);
+    parts.push(textPath({ text: wd, x: x + dotSpan, y, size, weight: "regular", color: theme.foregroundLight }));
+    x += dotSpan + (widths[i] ?? 0) + itemGap;
+  });
+  return parts.join("");
+}
 
 export function renderDaytimeChart(title: string, perHour: Record<string, number>, theme: Theme): string {
   const plotW = W - PAD_LEFT - PAD_RIGHT;
@@ -27,11 +46,13 @@ export function renderDaytimeChart(title: string, perHour: Record<string, number
   const yScale = (v: number) => baseY - (max === 0 ? 0 : (v / max) * plotH);
   const xScale = (hour: number) => PAD_LEFT + (hour / 23) * plotW;
 
+  // curveBasis gives a smoother (approximating) spline; endpoints are triplicated by
+  // d3 so the curve still starts/ends at hour 0 / hour 23.
   const makeArea = area<number>()
     .x((_d, i) => xScale(i))
     .y0(baseY)
     .y1((d) => yScale(d))
-    .curve(curveCatmullRom.alpha(0.5));
+    .curve(curveBasis);
 
   const paths = matrix
     .map((row, i) => {
@@ -58,5 +79,5 @@ export function renderDaytimeChart(title: string, perHour: Record<string, number
 
   const heading = textPath({ text: title, x: 18, y: 32, size: 16, weight: "bold", color: theme.foreground });
 
-  return svgDocument(W, H, cardBackground(W, H, theme) + heading + paths + labels);
+  return svgDocument(W, H, cardBackground(W, H, theme) + heading + weekdayLegend(theme) + paths + labels);
 }

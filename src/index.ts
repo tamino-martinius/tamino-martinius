@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { config } from "../config";
-import { aggregateGithub, aggregateNpm, topPackages, topRepositories } from "./aggregate";
+import { aggregateGithub, aggregateNpm, combineEqualWeight, topPackages, topRepositories } from "./aggregate";
 import { fetchGithubStats, fetchNpmStats } from "./fetch";
 import { linkedPicture, picture, replaceBlock } from "./readme";
 import { renderDaytimeChart } from "./svg/daytimeChart";
@@ -89,14 +89,17 @@ async function main(): Promise<void> {
   }
   if (row.length) sections.push(row.join(" "));
 
-  if (config.cards.githubDaytime.enabled) {
-    const p = writePair("github-daytime", (t) => renderDaytimeChart("Daytime Chart — Commits", gh.commitsPerHour, t));
-    sections.push(picture(p.light, p.dark, "GitHub daytime", 860));
+  if (config.cards.daytime.enabled) {
+    // Combine commit + publish activity with equal weight into one chart.
+    const daytime = combineEqualWeight(gh.commitsPerHour, npm.publishesPerHour);
+    const p = writePair("daytime", (t) => renderDaytimeChart("Daytime Chart", daytime, t));
+    sections.push(picture(p.light, p.dark, "Daytime chart (commits + npm publishes)", 860));
   }
-  if (config.cards.npmDaytime.enabled) {
-    const p = writePair("npm-daytime", (t) => renderDaytimeChart("Daytime Chart — Publishes", npm.publishesPerHour, t));
-    sections.push(picture(p.light, p.dark, "npm daytime", 860));
-  }
+
+  // Popular Repositories and Popular Packages, shown as two side-by-side columns of
+  // linked tiles (inline images with <br> line breaks, matching the stats-card row).
+  let reposColumn: string[] = [];
+  let packagesColumn: string[] = [];
 
   if (config.cards.popularRepos.enabled) {
     const repos = topRepositories(ghStats, {
@@ -105,7 +108,7 @@ async function main(): Promise<void> {
     });
     const leader = repos[0]?.stargazerCount ?? 0;
     const header = writePair("repos/_header", (t) => renderPopularHeader("Popular Repositories", t));
-    const tiles = [picture(header.light, header.dark, "Popular Repositories", 420)];
+    reposColumn = [picture(header.light, header.dark, "Popular Repositories", 420)];
     for (const repo of repos) {
       const slug = uniqueSlug("repos", repo.name);
       const accent =
@@ -122,9 +125,8 @@ async function main(): Promise<void> {
           valueIcon: "star",
         }),
       );
-      tiles.push(linkedPicture(repo.url, pair.light, pair.dark, repo.name, 420));
+      reposColumn.push(linkedPicture(repo.url, pair.light, pair.dark, repo.name, 420));
     }
-    sections.push(tiles.join("<br>"));
   }
 
   if (config.cards.popularPackages.enabled) {
@@ -134,7 +136,7 @@ async function main(): Promise<void> {
     });
     const leader = pkgs[0]?.downloads ?? 0;
     const header = writePair("packages/_header", (t) => renderPopularHeader("Popular Packages", t));
-    const tiles = [picture(header.light, header.dark, "Popular Packages", 420)];
+    packagesColumn = [picture(header.light, header.dark, "Popular Packages", 420)];
     for (const pkg of pkgs) {
       const slug = uniqueSlug("packages", pkg.name);
       const pair = writePair(`packages/${slug}`, (t) =>
@@ -149,9 +151,21 @@ async function main(): Promise<void> {
           valueIcon: "download",
         }),
       );
-      tiles.push(linkedPicture(pkg.url, pair.light, pair.dark, pkg.name, 420));
+      packagesColumn.push(linkedPicture(pkg.url, pair.light, pair.dark, pkg.name, 420));
     }
-    sections.push(tiles.join("<br>"));
+  }
+
+  if (reposColumn.length && packagesColumn.length) {
+    const rowCount = Math.max(reposColumn.length, packagesColumn.length);
+    const lines: string[] = [];
+    for (let i = 0; i < rowCount; i++) {
+      lines.push(`${reposColumn[i] ?? ""} ${packagesColumn[i] ?? ""}`.trim());
+    }
+    sections.push(lines.join("<br>"));
+  } else if (reposColumn.length) {
+    sections.push(reposColumn.join("<br>"));
+  } else if (packagesColumn.length) {
+    sections.push(packagesColumn.join("<br>"));
   }
 
   const block = sections.join("\n\n");
