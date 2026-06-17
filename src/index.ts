@@ -2,7 +2,7 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { config } from "../config";
 import { aggregateGithub, aggregateNpm, combineEqualWeight, topPackages, topRepositories } from "./aggregate";
-import { fetchGithubStats, fetchNpmStats } from "./fetch";
+import { fetchArchivedRepoNames, fetchGithubStats, fetchNpmStats } from "./fetch";
 import { linkedPicture, picture, replaceBlock } from "./readme";
 import { renderDaytimeChart } from "./svg/daytimeChart";
 import { renderPopularHeader, renderPopularTile } from "./svg/popularTile";
@@ -65,14 +65,20 @@ async function main(): Promise<void> {
   rmSync(assetsDir, { recursive: true, force: true });
   mkdirSync(assetsDir, { recursive: true });
 
-  const [ghStats, npmStats] = await Promise.all([
+  const [ghStats, npmStats, archivedRepos] = await Promise.all([
     fetchGithubStats(config.github.accounts),
     fetchNpmStats(config.npm.account),
+    fetchArchivedRepoNames(config.github.accounts),
   ]);
   const gh = aggregateGithub(ghStats);
   const npm = aggregateNpm(npmStats);
   const avatar = await fetchAvatarDataUri(ghStats.user.avatarUrl);
   const userWithAvatar = { ...ghStats.user, avatarUrl: avatar };
+
+  // Profile links derived from config (first GitHub account, the npm account).
+  const githubUser = config.github.accounts[0] ?? ghStats.user.username;
+  const reposUrl = `https://github.com/${githubUser}?tab=repositories`;
+  const npmUserUrl = `https://www.npmjs.com/~${config.npm.account}`;
 
   const sections: string[] = [];
 
@@ -94,7 +100,7 @@ async function main(): Promise<void> {
   }
   if (config.cards.npmTotals.enabled) {
     const p = writePair("npm-total", (t) => renderNpmTotalCounts(npm.totals, t));
-    row.push(picture(p.light, p.dark, "npm totals", CARD_W));
+    row.push(linkedPicture(npmUserUrl, p.light, p.dark, "npm totals", CARD_W));
   }
   if (row.length) sections.push(row.join(" "));
 
@@ -113,11 +119,13 @@ async function main(): Promise<void> {
   if (config.cards.popularRepos.enabled) {
     const repos = topRepositories(ghStats, {
       count: config.cards.popularRepos.count,
-      exclude: config.cards.popularRepos.exclude,
+      // Config excludes + repos GitHub reports as archived (fetched live, since the
+      // github-stats data has no archived flag).
+      exclude: [...config.cards.popularRepos.exclude, ...archivedRepos],
     });
     const leader = repos[0]?.stargazerCount ?? 0;
     const header = writePair("repos/_header", (t) => renderPopularHeader("Popular Repositories", t));
-    reposColumn = [picture(header.light, header.dark, "Popular Repositories", CARD_W)];
+    reposColumn = [linkedPicture(reposUrl, header.light, header.dark, "Popular Repositories", CARD_W)];
     for (const repo of repos) {
       const slug = uniqueSlug("repos", repo.name);
       const accent =
@@ -145,7 +153,7 @@ async function main(): Promise<void> {
     });
     const leader = pkgs[0]?.downloads ?? 0;
     const header = writePair("packages/_header", (t) => renderPopularHeader("Popular Packages", t));
-    packagesColumn = [picture(header.light, header.dark, "Popular Packages", CARD_W)];
+    packagesColumn = [linkedPicture(npmUserUrl, header.light, header.dark, "Popular Packages", CARD_W)];
     for (const pkg of pkgs) {
       const slug = uniqueSlug("packages", pkg.name);
       const pair = writePair(`packages/${slug}`, (t) =>
