@@ -13,8 +13,8 @@ export const config = {
     githubTotals: { enabled: true },
     npmTotals: { enabled: true },
     daytime: { enabled: true },
-    popularRepos: { enabled: true, count: 6, sortBy: "stars" as const, exclude: [] as string[] },
-    popularPackages: { enabled: true, count: 6, sortBy: "downloads" as const, exclude: [] as string[] },
+    popularRepos: { enabled: true, count: 10, sortBy: "stars" as const, exclude: [] as string[] },
+    popularPackages: { enabled: true, count: 10, sortBy: "downloads" as const, exclude: [] as string[] },
   },
   output: { assetsDir: "assets", readme: "README.md" },
 } as const satisfies {
