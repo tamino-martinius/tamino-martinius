@@ -1,0 +1,32 @@
+name: Generate README
+
+on:
+  schedule:
+    - cron: '30 5 * * *' # ~05:30 UTC, after upstream stats jobs land
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - name: Commit changes if any
+        run: |
+          if [[ -n "$(git status --porcelain README.md assets)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add README.md assets
+            git commit -m "chore: nightly stats refresh"
+            git push
+          else
+            echo "No changes."
+          fi
