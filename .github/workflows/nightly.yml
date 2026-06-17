@@ -19,6 +19,8 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Commit changes if any
         run: |
           if [[ -n "$(git status --porcelain README.md assets)" ]]; then

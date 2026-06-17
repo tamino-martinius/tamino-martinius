@@ -2,7 +2,7 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { config } from "../config";
 import { aggregateGithub, aggregateNpm, combineEqualWeight, topPackages, topRepositories } from "./aggregate";
-import { fetchGithubStats, fetchNpmStats } from "./fetch";
+import { fetchArchivedRepoNames, fetchGithubStats, fetchNpmStats } from "./fetch";
 import { linkedPicture, picture, replaceBlock } from "./readme";
 import { renderDaytimeChart } from "./svg/daytimeChart";
 import { renderPopularHeader, renderPopularTile } from "./svg/popularTile";
@@ -65,9 +65,10 @@ async function main(): Promise<void> {
   rmSync(assetsDir, { recursive: true, force: true });
   mkdirSync(assetsDir, { recursive: true });
 
-  const [ghStats, npmStats] = await Promise.all([
+  const [ghStats, npmStats, archivedRepos] = await Promise.all([
     fetchGithubStats(config.github.accounts),
     fetchNpmStats(config.npm.account),
+    fetchArchivedRepoNames(config.github.accounts),
   ]);
   const gh = aggregateGithub(ghStats);
   const npm = aggregateNpm(npmStats);
@@ -118,7 +119,9 @@ async function main(): Promise<void> {
   if (config.cards.popularRepos.enabled) {
     const repos = topRepositories(ghStats, {
       count: config.cards.popularRepos.count,
-      exclude: config.cards.popularRepos.exclude,
+      // Config excludes + repos GitHub reports as archived (fetched live, since the
+      // github-stats data has no archived flag).
+      exclude: [...config.cards.popularRepos.exclude, ...archivedRepos],
     });
     const leader = repos[0]?.stargazerCount ?? 0;
     const header = writePair("repos/_header", (t) => renderPopularHeader("Popular Repositories", t));
