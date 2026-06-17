@@ -17,7 +17,7 @@ export const config = {
       enabled: true,
       count: 8,
       sortBy: "stars" as const,
-      exclude: ["ui-snippets-checkboxes"] as string[],
+      exclude: ["ui-snippets-checkboxes", "meteor-smart-record"] as string[],
     },
     popularPackages: {
       enabled: true,
