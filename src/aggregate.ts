@@ -1,4 +1,4 @@
-import type { GithubStats, NpmStats, RepoPublicDetails } from "./types";
+import type { GithubStats, NpmPackage, NpmStats, RepoPublicDetails } from "./types";
 
 export interface GithubTotals {
   commitCount: number;
@@ -83,8 +83,10 @@ export function topRepositories(stats: GithubStats, opts: { count: number; exclu
 
 export interface NpmTotals {
   downloads: number;
+  downloadsThisWeek: number;
   versions: number;
   packageCount: number;
+  organizations: number;
 }
 
 export interface NpmAggregate {
@@ -118,26 +120,110 @@ export function aggregateNpm(stats: NpmStats): NpmAggregate {
     versions += count;
   }
   let downloads = 0;
-  for (const p of stats.packages) downloads += sumValues(p.downloadsPerDate);
+  let latestDate = "";
+  const scopes = new Set<string>();
+  for (const p of stats.packages) {
+    downloads += sumValues(p.downloadsPerDate);
+    const scope = scopeOf(p.details.name);
+    if (scope) scopes.add(scope);
+    for (const date of Object.keys(p.downloadsPerDate)) {
+      if (date > latestDate) latestDate = date;
+    }
+  }
+
+  // "This week" = the 7 calendar days ending at the latest date present in the data.
+  const weekDates = new Set<string>();
+  if (latestDate) {
+    const end = new Date(`${latestDate}T00:00:00Z`);
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(end);
+      day.setUTCDate(end.getUTCDate() - i);
+      weekDates.add(day.toISOString().slice(0, 10));
+    }
+  }
+  let downloadsThisWeek = 0;
+  for (const p of stats.packages) {
+    for (const [date, count] of Object.entries(p.downloadsPerDate)) {
+      if (weekDates.has(date)) downloadsThisWeek += count;
+    }
+  }
+
   return {
-    totals: { downloads, versions, packageCount: stats.packages.length },
+    totals: {
+      downloads,
+      downloadsThisWeek,
+      versions,
+      packageCount: stats.packages.length,
+      organizations: scopes.size,
+    },
     publishesPerHour,
     publishesPerWeekday,
   };
 }
 
+/** The npm scope of a package name, e.g. "@central-icons-react/foo" -> "@central-icons-react"; null if unscoped. */
+function scopeOf(name: string): string | null {
+  const match = name.match(/^(@[^/]+)\//);
+  return match?.[1] ?? null;
+}
+
+function npmUrl(pkg: NpmPackage): string {
+  return pkg.details.links?.npm ?? `https://www.npmjs.com/package/${pkg.details.name}`;
+}
+
+/**
+ * Top packages by downloads. Packages published under an npm scope (e.g. `@central-icons-react`)
+ * are collapsed into a single entry: downloads are summed across the scope, the entry links to the
+ * scope's most-downloaded package, and the description reports how many packages the scope has in
+ * the data. Unscoped packages remain individual entries.
+ */
 export function topPackages(stats: NpmStats, opts: { count: number; exclude: string[] }): TopPackage[] {
-  return stats.packages
-    .filter((p) => !opts.exclude.includes(p.details.name))
-    .map((p) => ({
-      name: p.details.name,
-      description: p.details.description ?? "",
-      latestVersion: p.details.latestVersion,
-      url: p.details.links?.npm ?? `https://www.npmjs.com/package/${p.details.name}`,
-      downloads: sumValues(p.downloadsPerDate),
-    }))
-    .sort((a, b) => b.downloads - a.downloads)
-    .slice(0, opts.count);
+  const filtered = stats.packages.filter((p) => !opts.exclude.includes(p.details.name));
+
+  const scopes = new Map<string, NpmPackage[]>();
+  const entries: TopPackage[] = [];
+
+  for (const pkg of filtered) {
+    const scope = scopeOf(pkg.details.name);
+    if (scope) {
+      const group = scopes.get(scope) ?? [];
+      group.push(pkg);
+      scopes.set(scope, group);
+    } else {
+      entries.push({
+        name: pkg.details.name,
+        description: pkg.details.description ?? "",
+        latestVersion: pkg.details.latestVersion,
+        url: npmUrl(pkg),
+        downloads: sumValues(pkg.downloadsPerDate),
+      });
+    }
+  }
+
+  for (const [scope, group] of scopes) {
+    let downloads = 0;
+    let topUrl = "";
+    let topVersion = "";
+    let topDownloads = -1;
+    for (const pkg of group) {
+      const pkgDownloads = sumValues(pkg.downloadsPerDate);
+      downloads += pkgDownloads;
+      if (pkgDownloads > topDownloads) {
+        topDownloads = pkgDownloads;
+        topUrl = npmUrl(pkg);
+        topVersion = pkg.details.latestVersion;
+      }
+    }
+    entries.push({
+      name: scope,
+      description: `${group.length} package${group.length === 1 ? "" : "s"} in this scope`,
+      latestVersion: topVersion,
+      url: topUrl,
+      downloads,
+    });
+  }
+
+  return entries.sort((a, b) => b.downloads - a.downloads).slice(0, opts.count);
 }
 
 /**

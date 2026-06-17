@@ -3,7 +3,7 @@ import type { Theme } from "../theme";
 import { bar, cardBackground, hr, legendRows, svgDocument, textPath } from "./primitives";
 
 const W = 420;
-const H = 170;
+const H = 184;
 
 function formatNumber(n: number): string {
   return n.toLocaleString("en-US");
@@ -33,7 +33,7 @@ export function renderGithubTotalCounts(totals: GithubTotals, theme: Theme): str
     legendRows({ x: 18, y: 100, items, theme }) +
     bar({
       x: 18,
-      y: 150,
+      y: 166,
       width: W - 36,
       height: 8,
       sections: [
@@ -48,7 +48,13 @@ export function renderGithubTotalCounts(totals: GithubTotals, theme: Theme): str
 export function renderNpmTotalCounts(totals: NpmTotals, theme: Theme): string {
   const items = [
     { label: "Packages", value: formatNumber(totals.packageCount), color: theme.series[0] ?? theme.foregroundLight },
+    {
+      label: "Organizations",
+      value: formatNumber(totals.organizations),
+      color: theme.series[3] ?? theme.foregroundLight,
+    },
     { label: "Versions Published", value: formatNumber(totals.versions), color: theme.blue },
+    { label: "This Week", value: formatNumber(totals.downloadsThisWeek), color: theme.green },
   ];
   const body =
     cardBackground(W, H, theme) +
