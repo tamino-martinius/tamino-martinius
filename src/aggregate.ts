@@ -69,16 +69,28 @@ export function aggregateGithub(stats: GithubStats): GithubAggregate {
 }
 
 export interface TopRepo extends RepoPublicDetails {
+  // Normalized to numbers (default 0) so downstream rendering never sees undefined.
+  stargazerCount: number;
+  forkCount: number;
   primaryLanguage: string | null;
 }
 
 export function topRepositories(stats: GithubStats, opts: { count: number; exclude: string[] }): TopRepo[] {
-  return stats.repositories
-    .map((r) => r.public)
-    .filter((p): p is RepoPublicDetails => p !== undefined && !opts.exclude.includes(p.name))
-    .sort((a, b) => b.stargazerCount - a.stargazerCount)
-    .slice(0, opts.count)
-    .map((p) => ({ ...p, primaryLanguage: p.languages[0] ?? null }));
+  return (
+    stats.repositories
+      .map((r) => r.public)
+      .filter((p): p is RepoPublicDetails => p !== undefined && !opts.exclude.includes(p.name))
+      // Treat a missing stargazerCount as 0 so the comparator stays a real number (an
+      // undefined would make `b - a` NaN, leaving the sort order — and the top slice — unstable).
+      .sort((a, b) => (b.stargazerCount ?? 0) - (a.stargazerCount ?? 0))
+      .slice(0, opts.count)
+      .map((p) => ({
+        ...p,
+        stargazerCount: p.stargazerCount ?? 0,
+        forkCount: p.forkCount ?? 0,
+        primaryLanguage: p.languages[0] ?? null,
+      }))
+  );
 }
 
 export interface NpmTotals {
