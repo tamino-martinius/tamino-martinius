@@ -11,8 +11,10 @@ export interface RepoPublicDetails {
   url: string;
   languages: string[];
   description: string;
-  stargazerCount: number;
-  forkCount: number;
+  // Optional: the upstream github-stats data omits these for repos the user doesn't
+  // own (forks/contributions), where the `public` object is just name/url/languages/description.
+  stargazerCount?: number;
+  forkCount?: number;
 }
 
 export interface Repository {
